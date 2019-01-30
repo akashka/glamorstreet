@@ -1,0 +1,253 @@
+'use strict';
+
+/**
+ * Module dependencies
+ */
+var mongoose = require('mongoose');
+var request = require('request');
+var config = require('../config');
+var _ = require('lodash');
+var Deal = require('../models/sections').Deals;
+var nodemailer = require('nodemailer');
+var sgTransport = require('nodemailer-sendgrid-transport');
+var options = {
+    auth: {
+        api_user: 'axisrooms',
+        api_key: 'admin1!'
+    }
+}
+
+var transporter = nodemailer.createTransport(sgTransport(options));
+
+var headers = {
+    apiKey: config.apiKey,
+    channelId: config.channelId
+};
+
+/**
+ * Extend user's controller
+ */
+module.exports = _.extend(
+
+
+  //manage Book
+  exports.getmanageBook = function(req, res) {
+    var params = req.headers.params ? JSON.parse(req.headers.params) : {};
+    var param = {
+      userId: (params.userId ? '?userId=' + params.userId : '')
+    }
+    // Configure the request
+    var options = {
+      url: config.url + config.buyerBookingHistoryApi + param.userId,
+      method: 'GET',
+      headers: headers
+    };
+
+    console.log(options.url);
+    // Start the request
+    request(options, function(error, response, body) {
+      if (!error && response.statusCode == 200) {
+        res.json(JSON.parse(body));
+      }
+    })
+  };
+
+//Booking Details
+exports.getBookDetails = function(req, res) {
+  var params = req.headers.params ? JSON.parse(req.headers.params) : {};
+
+  var param = {
+    userId: (params.bookingRefId ? '?bookingId=' + params.bookingRefId : '')
+  }
+  // Configure the request
+  var options = {
+    url: config.url + config.getBookingDetailsApi + param.userId,
+    method: 'GET',
+    headers: headers
+  };
+
+  console.log(options.url);
+
+  // Start the request
+  request(options, function(error, response, body) {
+    if (!error && response.statusCode == 200) {
+      res.json(JSON.parse(body));
+    }
+  })
+};
+
+//Cancel Booking Request
+exports.cancelBooking = function(req, res) {
+
+  // var params = req.headers.params ? JSON.parse(req.headers.params) : {};
+  var param = {
+    refrenceId: (req.headers.params ? '?refrenceId=' + req.headers.params : '')
+  }
+  console.log(param);
+  // Configure the request
+  var options = {
+    url: config.url + config.cancelBookingApi + param.refrenceId,
+    method: 'GET',
+    headers: headers
+  };
+
+  console.log(options.url);
+
+  // Start the request
+  request(options, function(error, response, body) {
+    if (!error && response.statusCode == 200) {
+      res.json(JSON.parse(body));
+    }
+  })
+};
+
+//Confirming Cancel Booking
+exports.confirmCancel = function(req, res) {
+
+  // Configure the request
+  var options = {
+    url: config.url + config.bookingApi,
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(req.body)
+  };
+
+  console.log(options.url);
+
+  // Start the request
+  request(options, function(error, response, body) {
+    if (!error && response.statusCode == 200) {
+      res.json(JSON.parse(body));
+    }
+  })
+};
+
+//Add Amount to Wallet
+exports.addWalletAmount = function(req, res) {
+  var params = req.headers.params ? JSON.parse(req.headers.params) : {};
+  console.log(req.headers);
+  var param = {
+    userId: (params.userId ? '?userId=' + params.userId : ''),
+    supplierId: (params.supplierId ? '&supplierId=' + params.supplierId : ''),
+    txnAmt: (params.txnAmt ? '&txnAmt=' + params.txnAmt : ''),
+  }
+  // Configure the request
+  var options = {
+    url: config.url + config.addWalletAmountApi + param.userId + param.supplierId + param.txnAmt,
+    method: 'GET',
+    headers: headers
+  };
+
+  console.log(options.url);
+
+  // Start the request
+  request(options, function(error, response, body) {
+    if (!error && response.statusCode == 200) {
+      res.json(JSON.parse(body));
+    }
+  })
+};
+
+
+//manage Wallet
+exports.getWalletDetails = function(req, res) {
+
+  var params = req.headers.params ? JSON.parse(req.headers.params) : {};
+  var param = {
+    userId: (params.userId ? '?userId=' + params.userId : '')
+  }
+  // Configure the request
+  var options = {
+    url: config.url + config.walletDetailsApi + param.userId,
+    method: 'GET',
+    headers: headers
+  };
+
+  console.log(options.url);
+  // Start the request
+  request(options, function(error, response, body) {
+    console.log("response " + response.statusCode);
+    if (!error && response.statusCode == 200) {
+      res.json(JSON.parse(body));
+    }
+  })
+};
+
+exports.updateUserProfile = function(req, res) {
+  // Configure the request
+  var options = {
+    url: config.url + config.updateUserProfileApi,
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(req.body)
+  };
+
+  console.log(options.url);
+  // Start the request
+  request(options, function(error, response, body) {
+    console.log("response " + response.statusCode);
+    if (!error && response.statusCode == 200) {
+      res.json(JSON.parse(body));
+    }
+  })
+};
+
+//update user password
+exports.updateUserPassword = function(req, res) {
+  // Configure the request
+  var params = req.headers.params ? JSON.parse(req.headers.params) : {};
+  var param = {
+    emailId: (params.emailId ? '&emailId=' + params.emailId : ''),
+    oldPassword: (params.oldPassword ? '&oldpassword=' + params.oldPassword : ''),
+    newPassword: (params.newPassword ? '&newpassword=' + params.newPassword : '')
+  }
+  var options = {
+    url: config.url + config.updateUserPasswordAPi + config.beId + param.emailId + param.oldPassword + param.newPassword,
+    method: 'GET',
+    headers: headers
+  };
+  console.log(options.url);
+  // Start the request
+  request(options, function(error, response, body) {
+    console.log(response.statusCode);
+    if (!error && response.statusCode == 200) {
+      res.json(JSON.parse(body));
+      console.log(response.body);
+    } else if (response.statusCode == 500) {
+      res.json(JSON.parse(body));
+      console.log(response.body);
+    }
+  })
+};
+
+exports.getBookedHoteldetail = function(req, res) {
+  var params = req.headers.params ? JSON.parse(req.headers.params) : {};
+  console.log(params);
+  var param = {
+    productId: (params.hotelId ? '&productId=' + params.hotelId : ''),
+    checkIn: (params.checkIn ? '&checkInDate=' + params.checkIn : ''),
+    checkOut: (params.checkOut ? '&checkOutDate=' + params.checkOut : '')
+  }
+  // Configure the request
+  var options = {
+    url: config.url + config.searchApi + config.beId + param.productId + param.checkIn + param.checkOut,
+    method: 'GET',
+    headers: headers
+  };
+
+  console.log(options.url);
+  // Start the request
+  request(options, function(error, response, body) {
+    console.log("response " + response.statusCode);
+    if (!error && response.statusCode == 200) {
+      res.json(JSON.parse(body));
+      console.log(response.body);
+    }
+  })
+};
+
+require('./users/users.authentication.server.controller'),
+  require('./users/users.authorization.server.controller'),
+  require('./users/users.password.server.controller'),
+  require('./users/users.profile.server.controller')
+);

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge; IE=11; IE=10; IE=9; IE=8; IE=7; chrome=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+  <title>{{{metaTags.title}}}</title>
+  <meta name="description" content="{{{metaTags.descriptionText}}}" />
+  <meta name="keywords" content="{{{metaTags.keywords}}}" />
+  <meta name="fragment" content="!">
+
+  <!-- Apple META -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <!-- Facebook META -->
+  <meta property="fb:app_id" content="{{{projectConfig.facebookId}}}">
+  <meta property="og:site_name" content="Staydilly">
+  <meta property="og:title" content="{{{metaTags.title}}}">
+  <meta property="og:description" content="{{{metaTags.descriptionText}}}">
+  <meta property="og:keywords" content="{{{metaTags.keywords}}}">
+  <meta property="og:url" content="{{{metaTags.url}}}">
+  <meta property="og:image" content="{{{metaTags.img}}}">
+  <meta property="og:type" content="website">
+  <meta name="google-site-verification" content="-erkwdawo-__VFUwm5YVA1Dn2fN8JKMVV1WxHx4uyz8" />
+
+  <!-- Twitter META -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="{{{project}}}">
+  <meta name="twitter:title" content="{{{metaTags.title}}}">
+  <meta name="twitter:description" content="{{{metaTags.descriptionText}}}">
+  <meta name="twitter:image" content="{{{metaTags.img}}}">
+
+  <!-- Fav Icon -->
+  <script ng-if="projectConfig.googleMapkey" src="https://maps.googleapis.com/maps/api/js?key={{{projectConfig.googleMapkey}}}"  defer></script>
+  <link href="/views/{{{project}}}/modules/core/client/img/favicon.ico" rel="shortcut icon" type="image/x-icon">
+
+  <!-- Application CSS Files -->
+  {{#each cssFiles}}<link rel="stylesheet" href="/{{this}}">{{/each}}
+</head>
+
+<body class="ng-cloak" ng-controller="MainController" ng-class="{'cms-layout': cmsLayout}">
+  <div>
+    <header ng-if="!cmsLayout && !virtualUrl" ng-include="'/views/{{{project}}}/modules/core/client/views/header.client.view.html'" ></header>
+    <header ng-if="cmsLayout" ng-include="'/views/{{{project}}}/modules/cms/client/views/partials/cms-header.client.view.html'" class="cmsHeader"></header>
+    <section>
+        {{{block "content"}}}
+      </section>
+    <footer ng-if="!cmsLayout && !virtualUrl" ng-include="'/views/{{{project}}}/modules/core/client/views/footer.client.view.html'" ></footer>
+    <footer ng-if="cmsLayout" ng-include="'/views/{{{project}}}/modules/cms/client/views/partials/cms-footer.client.view.html'" ></footer>
+
+    <noscript>
+      <style>
+        [ng\:cloak], [ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+          display: block !important;
+        }
+      </style>
+      <div class="alert alert-warning">
+        <strong>This page requires JavaScript.</strong> Please enable it in your browser.
+      </div>
+    </noscript>
+
+      <!--Embedding The User Object-->
+      <script type="text/javascript">
+        var user = {{{ user }}};
+        var env = "{{ env }}";
+      </script>
+
+
+    <!--Tawk chart integration-->
+    <div ng-if="projectConfig.tawkChartId">
+      <script type="text/javascript">
+        var Tawk_API = Tawk_API || {},
+          Tawk_LoadStart = new Date();
+        (function() {
+          var s1 = document.createElement("script"),
+            s0 = document.getElementsByTagName("script")[0];
+          s1.async = true;
+          s1.src = 'https://embed.tawk.to/{{{projectConfig.tawkChartId}}}/default';
+          s1.charset = 'UTF-8';
+          s1.setAttribute('crossorigin', '*');
+          s0.parentNode.insertBefore(s1, s0);
+        })();
+      </script>
+    </div>
+    <div ng-if="projectConfig.GoogleAnalyticsId">
+    <script>
+
+      (function(i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function() {
+            (i[r].q = i[r].q || []).push(arguments)
+          }, i[r].l = 1 * new Date();
+        a = s.createElement(o),   m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+      })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+
+
+      ga('create', '{{{projectConfig.GoogleAnalyticsId}}}', 'auto');
+      ga('send', 'pageview');
+      ga('require', 'ecommerce');
+    </script>
+
+     <!-- BEGIN PRIVY WIDGET CODE -->
+    <script type='text/javascript'> var _d_site = _d_site || '56C98B8CCCCA032E423A0FD4'; </script>
+    <script src='//widget.privy.com/assets/widget.js'></script>
+    <!-- END PRIVY WIDGET CODE -->
+
+    <!-- Fullstory -->
+      <!--<script>-->
+        <!--window['_fs_debug'] = false;-->
+        <!--window['_fs_host'] = 'www.fullstory.com';-->
+        <!--window['_fs_org'] = '30R4Z';-->
+        <!--window['_fs_namespace'] = 'FS';-->
+        <!--(function(m,n,e,t,l,o,g,y){-->
+            <!--if (e in m && m.console && m.console.log) { m.console.log('FullStory namespace conflict. Please set window["_fs_namespace"].'); return;}-->
+            <!--g=m[e]=function(a,b){g.q?g.q.push([a,b]):g._api(a,b);};g.q=[];-->
+            <!--o=n.createElement(t);o.async=1;o.src='https://'+_fs_host+'/s/fs.js';-->
+            <!--y=n.getElementsByTagName(t)[0];y.parentNode.insertBefore(o,y);-->
+            <!--g.identify=function(i,v){g(l,{uid:i});if(v)g(l,v)};g.setUserVars=function(v){g(l,v)};-->
+            <!--g.identifyAccount=function(i,v){o='account';v=v||{};v.acctId=i;g(o,v)};-->
+            <!--g.clearUserCookie=function(c,d,i){if(!c || document.cookie.match('fs_uid=[`;`]*`[`;`]*`[`;`]*`')){-->
+            <!--d=n.domain;while(1){n.cookie='fs_uid=;domain='+d+-->
+            <!--';path=/;expires='+new Date(0).toUTCString();i=d.indexOf('.');if(i<0)break;d=d.slice(i+1)}}};-->
+        <!--})(window,document,window['_fs_namespace'],'script','user');-->
+      <!--</script>-->
+    <!--Full Story ends -->
+
+      <!--google adwords-->
+      <script type="text/javascript" src="//www.googleadservices.com/pagead/conversion_async.js"></script>
+
+      </div>
+
+    <div ng-if="projectConfig.FacebookAnalyticsId">
+      <script>
+        !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+          n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+          n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+          t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+          document,'script','https://connect.facebook.net/en_US/fbevents.js');
+
+        fbq('init', '{{{projectConfig.FacebookAnalyticsId}}}', {
+         em: '{{fb.email}} || ""',
+         fn: '{{fb.firstName}} || ""',
+         ln: '{{fb.lastName}} || ""',
+         ph: '{{fb.phone}} || ""'
+        });
+        fbq('track', 'PageView');
+      </script>
+    </div>
+
+    <!--Load The Socket.io File-->
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+
+    <!--Application JavaScript Files-->
+      {{#each jsFiles}}<script type="text/javascript" src="/{{this}}"></script>{{/each}}
+
+
+    <!--owasp config sync-->
+    <script type="text/javascript">
+      var sharedConfig = {{{ sharedConfig }}};
+      owaspPasswordStrengthTest.config(sharedConfig.owasp);
+    </script>
+    <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
+
+
+    {{#if livereload}}
+    <!--Livereload script rendered -->
+    <script type="text/javascript" src="{{host}}:35729/livereload.js"></script>
+    {{/if}}
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,18 @@
+(function() {
+    'use strict';
+
+    angular
+        .module('pressKit.routes')
+        .config(routeConfig);
+
+    routeConfig.$inject = ['$stateProvider', 'CLIENT'];
+
+    function routeConfig($stateProvider, CLIENT) {
+        $stateProvider
+            .state('pressKit', {
+                url: '/press-kit',
+                templateUrl: '/views/' + CLIENT.name + '/modules/press-kit/client/views/press-kit.client.view.html',
+                controller: 'pressKitController'
+            });
+    }
+}());

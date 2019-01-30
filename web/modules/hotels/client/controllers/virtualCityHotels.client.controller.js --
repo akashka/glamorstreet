@@ -1,0 +1,428 @@
+(function() {
+  'use strict';
+
+  angular
+    .module('hotels')
+    .controller('virtualCityHotelsCtrl', virtualCityHotelsCtrl);
+
+  virtualCityHotelsCtrl.$inject = ['$scope', '$rootScope', 'HotelsServices', '$stateParams',
+  '$http', '$filter', '$uibModal', '$timeout', 'Calculate', '$location', 'CLIENT'
+  ];
+
+  function virtualCityHotelsCtrl($scope, $rootScope, HotelsServices, $stateParams,
+  $http, $filter, $uibModal, $timeout, Calculate, $location, CLIENT) {
+
+    var netExclusive, markup, sellExclusive, discountedSellExclusive, finalPrice, finalTaxes, discount, Baor_rate, fix_rate, Show_discount;
+    $scope.virtualLocation = {};
+
+    if($location.url() == "/techsauce"){
+      $scope.virtualLocation = {
+        locationId : 9326,
+        locationLat : 13.747715,
+        locationLong : 100.538742,
+        locationText: "Techsauce Global Summit @ Centara Grand",
+	mapLogo: "../../views/staydilly/modules/core/client/images/virtual_city/techsauceround.png",
+	checkin: (moment().year(2017).month(6).date(5).format('MM-DD-YYYY')),
+      	checkout: (moment().year(2017).month(6).date(6).format('MM-DD-YYYY'))
+      };
+    }
+    else if ($location.url() == "/breakbulk"){
+      $scope.virtualLocation = {
+        locationId : 9316,
+        locationLat : 3.154200,
+        locationLong : 101.712900,
+        locationText: "Breakbulk Souteast Asia",
+	mapLogo: "../../views/staydilly/modules/core/client/images/virtual_city/etwosevengrey.png",
+      	checkin: (moment().add(1, 'day').format('MM-DD-YYYY')),
+      	checkout: (moment().add(2, 'day').format('MM-DD-YYYY'))	
+      };
+    }
+	
+
+    var today = new Date();
+	    if($location.url() == "/techsauce"){
+	
+    $scope.checkin = (moment(today).add(1, 'day').format('MM-DD-YYYY'));
+    $scope.checkout = (moment(today).add(2, 'day').format('MM-DD-YYYY'));
+    $scope.dataReceived = false;
+    $scope.markers = [];
+
+	    }
+		
+    else if ($location.url() == "/breakbulk"){
+	
+    $scope.checkin = '09-03-2017';
+    $scope.checkout = '09-06-2017';
+    $scope.dataReceived = false;
+    $scope.markers = [];
+ }
+
+    $scope.params = {
+      rooms: 1,
+      adults: 2,
+      nights: 1,
+      location: $scope.virtualLocation.locationId,
+      checkin: $scope.checkin,
+      checkout: $scope.checkout
+    };
+
+
+    // Function to calculate the rates of each hotel
+    function calculateAll(hotel, guests) {
+      if (guests.nights > 1) {
+        hotel.price.discounted = (hotel.price.discounted/guests.nights);
+        hotel.price.actual = (hotel.price.actual/guests.nights);
+      }
+      hotel.price.showDiscount = Calculate.calculateDiscount(hotel.price.actual, hotel.price.discounted);
+    }
+
+    // covert string to title case
+    function titleCase(str) {
+      return str.toLowerCase().split(' ').map(function(val) {
+        return val.replace(val[0], val[0].toUpperCase());
+      }).join(' ');
+    }
+
+    // Get the list of Hotels
+    HotelsServices.get($scope.params).success(function(res) {
+      if (res) {
+        $scope.searchId = res.search_id;
+      }
+      if (res.Hotel_Details) {
+        var hotels = res.Hotel_Details;
+
+        // Get Hotel Reviews
+        var params = {
+          headers: {
+            "params": ((_.map(hotels, 'hotel_id')).join())
+          }
+        };
+        $scope.hotelReviews = [];
+        $http.get('/api/reviews', params).success(function(res) {
+          $scope.hotelReviews = res;
+        });
+
+        // Check hotel availability
+        for (var i = 0; i < hotels.length; i++) {
+          hotels[i].isAvailable = false;
+          if (hotels[i].price != undefined && hotels[i].price != null && hotels[i].inventory>0) {
+            if (hotels[i].price.discounted > 0) hotels[i].isAvailable = true;
+          }
+        }
+      } else {
+        $scope.noHotels = true;
+      }
+
+      _(hotels).forEach(function(hotel) {
+        if (hotel.price != undefined && hotel.price != null)
+          calculateAll(hotel, $scope.params)
+      });
+
+      _(hotels).forEach(function(hotel){
+        var contentData = '<a href="http://staydilly.com/hotel/' + hotel.hotel_id + '?searchId=' + $scope.searchId + '&productId=' + hotel.hotel_id + '&checkin=' + $scope.checkin + '&checkout=' + $scope.checkout + '&rooms=' + $scope.params.rooms + '&adults=' + $scope.params.adults + '"><div id="iw-container">' +
+                    '<img height="185" width="264" ng-src="' + hotel.images[0] + '" alt="' + hotel.hotel_name + '" src="' + hotel.images[0] + '">' +
+                    '<div class="iw-content">' +
+                      '<h5 class="title">' + hotel.property_type + ' - ' + hotel.currency + ' ' + Math.round(hotel.discounted*100)/100 + '</h5>' +
+                      '<h6 class="gold_clr">' + hotel.hotel_name + '</h6>';
+
+        for(var r = 0; r < $scope.hotelReviews.length; r++){
+          if($scope.hotelReviews[r].hotel_id === hotel.hotel_id){
+            contentData += '<p class="in_info"><span class="orgclr">' + $scope.hotelReviews[r].rating_text + $scope.hotelReviews[r].rating + '</span> /10 based on <span class="orgclr">' + $scope.hotelReviews[r].total_reviews + '</span> reviews </p>';
+          }
+        }
+
+        contentData += '</div></a>';
+
+        var tempData = {
+           position: new google.maps.LatLng(hotel.coordinates.latitude, hotel.coordinates.longitude),
+           type: 'hotel',
+           content: contentData
+         }
+
+        $scope.markers.push(tempData);
+      });
+
+      $scope.hotels = hotels;
+      initMap();
+      $scope.dataReceived = true;
+    });
+
+    // List of Amenities
+    var amenities = {
+      "Clothes Rack / Wardrobe": {
+        icon: '6.png',
+        text: 'Clothes Rack / Wardrobe'
+      },
+      "Air Conditioning": {
+        icon: '5.png',
+        text: 'Air Conditioning'
+      },
+      "Carpeted": {
+        icon: '7.png',
+        text: 'Carpeted'
+      },
+      "Fan": {
+        icon: '9.png',
+        text: 'Fan'
+      },
+      "Iron": {
+        icon: '12.png',
+        text: 'Iron'
+      },
+      "Safe": {
+        icon: '15.png',
+        text: 'Safe'
+      },
+      "Television": {
+        icon: '19.png',
+        text: 'Television'
+      },
+      "Bathtub": {
+        icon: '25.png',
+        text: 'Bathtub'
+      },
+      "Shower": {
+        icon: '26.png',
+        text: 'Shower'
+      },
+      "Hairdryer": {
+        icon: '29.png',
+        text: 'Hairdryer'
+      },
+      "DVD Player": {
+        icon: '41.png',
+        text: 'DVD Player'
+      },
+      "Satellite Channels": {
+        icon: '47.png',
+        text: 'Satellite Channels'
+      },
+      "Telephone": {
+        icon: '48.png',
+        text: 'Telephone'
+      },
+      "Dining Area in Room": {
+        icon: '61.png',
+        text: 'Dining Area in Room'
+      },
+      "Electric Kettle": {
+        icon: '65.png',
+        text: 'Electric Kettle'
+      },
+      "Minibar": {
+        icon: '68.png',
+        text: 'Minibar'
+      },
+      "Kitchenette": {
+        icon: 'Kitchenette.png',
+        text: 'Kitchenette'
+      },
+      "Microwave": {
+        icon: '71.png',
+        text: 'Microwave'
+      },
+      "Refrigerator": {
+        icon: '72.png',
+        text: 'Refrigerator'
+      },
+      "Tea/Coffee Maker": {
+        icon: '73.png',
+        text: 'Tea/Coffee Maker'
+      },
+      "Coffee Machine / Espresso Machine": {
+        icon: '.png',
+        text: 'Coffee Machine / Espresso Machine'
+      },
+      "Room Service": {
+        icon: '76.png',
+        text: 'Room Service'
+      },
+      "Breakfast in the Room": {
+        icon: '77.png',
+        text: 'Breakfast in the Room'
+      },
+      "Designated Smoking Area": {
+        icon: '84.png',
+        text: 'Designated Smoking Area'
+      },
+      "Swimming Pool": {
+        icon: '85.png',
+        text: 'Swimming Pool'
+      },
+      "Gymnasium": {
+        icon: '86.png',
+        text: 'Gymnasium'
+      },
+      "Concierge Services": {
+        icon: '88.png',
+        text: 'Concierge Services'
+      },
+      "ATM On Site": {
+        icon: '94.png',
+        text: 'ATM On Site'
+      },
+      "Kid's Club": {
+        icon: '114.png',
+        text: "Kid's Club"
+      },
+      "Restaurant": {
+        icon: '115.png',
+        text: 'Restaurant'
+      },
+      "Bar": {
+        icon: '117.png',
+        text: 'Bar'
+      },
+      "BBQ Facilities": {
+        icon: '121.png',
+        text: 'BBQ Facilities'
+      },
+      "Beachfront": {
+        icon: '128.png',
+        text: 'Beachfront'
+      },
+      "Spa": {
+        icon: '129.png',
+        text: 'Spa'
+      },
+      "Disable Friendly": {
+        icon: '144.png',
+        text: 'Disable Friendly'
+      },
+      "Wifi": {
+        icon: 'icon_set_1_icon-7',
+        text: 'Free Wifi'
+      },
+      "Wi-Fi (Complimentary)": {
+        icon: 'wifi.png',
+        text: 'Free Wifi'
+      },
+      "bed": {
+        icon: 'icon_set_2_icon-115',
+        text: '1 Double or 2 Single Beds'
+      },
+      "breakfast": {
+          icon: 'icon_set_3_restaurant-6',
+          text: 'Free breakfast'
+      },
+      "room": {
+        icon: 'icon_set_1_icon-64',
+        text: '1 Double or 2 Single Rooms'
+      },
+      "AC": {
+        icon: 'icon-air',
+        text: 'Ac'
+      },
+      'Tea Maker': {
+        icon: 'icon_set_3_restaurant-8',
+        text: 'Tea/Coffee Maker'
+      },
+      "Phone": {
+        icon: 'icon_set_1_icon-90',
+        text: 'Phone'
+      }
+    };
+
+    // Get amenities Icon
+    $scope.amIcon = function(am) {
+      return amenities[am] ? amenities[am].icon : '';
+    };
+
+    //Get Amenities Text
+    $scope.amText = function(am) {
+      return amenities[am] ? amenities[am].text : '';
+    };
+
+    // Open Map Model
+    $scope.openMapModal = function($event, hotel) {
+      $event.preventDefault();
+      $event.stopPropagation();
+      var modalInstance = $uibModal.open({
+        animation: true,
+        templateUrl: 'views/staydilly/modules/users/client/views/modals/maps.client.html',
+        controller: 'mapsController',
+        controllerAs: '$ctrl',
+        resolve: {
+          hotel: function() {
+            return hotel;
+          }
+        }
+      });
+    };
+
+    function initMap() {
+      // Create the map.
+      var map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 14,
+        center: {
+          lat: JSON.parse($scope.virtualLocation.locationLat),
+          lng: JSON.parse($scope.virtualLocation.locationLong)
+        },
+        mapTypeId: 'roadmap'
+      });
+
+      var icons = {
+         logo: $scope.virtualLocation.mapLogo,
+         hotel: '../../views/staydilly/modules/core/client/images/virtual_city/MapPin.png'
+      }
+
+      var infowindow = new google.maps.InfoWindow();
+
+      google.maps.event.addListener(infowindow, 'domready', function() {
+          // Reference to the DIV that wraps the bottom of infowindow
+          var iwOuter = $('.gm-style-iw');
+
+          /* Since this div is in a position prior to .gm-div style-iw.
+           * We use jQuery and create a iwBackground variable,
+           * and took advantage of the existing reference .gm-style-iw for the previous div with .prev().
+          */
+          var iwBackground = iwOuter.prev();
+
+          // Removes background shadow DIV
+          iwBackground.children(':nth-child(2)').css({'display' : 'none'});
+
+          // Removes white background DIV
+          iwBackground.children(':nth-child(4)').css({'display' : 'none'});
+
+          // If the content of infowindow not exceed the set maximum height, then the gradient is removed.
+          if($('.iw-content').height() < 140){
+            $('.iw-bottom-gradient').css({display: 'none'});
+          }
+
+          // The API automatically applies 0.7 opacity to the button after the mouseout event. This function reverses this event to the desired value.
+          iwCloseBtn.mouseout(function(){
+            $(this).css({opacity: '1'});
+          });
+      });
+
+      // Event that closes the Info Window with a click on the map
+      google.maps.event.addListener(map, 'click', function() {
+        infowindow.close();
+      });
+
+      var features = {
+          position: new google.maps.LatLng($scope.virtualLocation.locationLat, $scope.virtualLocation.locationLong),
+          type: 'logo',
+          content: "<b>" + $scope.virtualLocation.locationText + "</b>"
+      };
+      $scope.markers.push(features);
+
+      $scope.markers.forEach(function(feature) {
+         var marker = new google.maps.Marker({
+           position: feature.position,
+           icon: icons[feature.type],
+           map: map
+         });
+
+          google.maps.event.addListener(marker,'click', (function(marker,content,infowindow){
+             return function() {
+                 infowindow.setContent(content);
+                 infowindow.open(map,marker);
+             };
+           })(marker,feature.content,infowindow));
+      });
+
+    };
+
+  }
+}());

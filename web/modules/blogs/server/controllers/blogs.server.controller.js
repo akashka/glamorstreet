@@ -1,0 +1,152 @@
+'use strict';
+
+/**
+ * Module dependencies
+ */
+var path = require('path'),
+  mongoose = require('mongoose'),
+  request = require('request'),
+  projectConfig = require(path.resolve('./modules/core/server/config/config')),
+  errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller'));
+
+var config = projectConfig();
+
+var options = {
+  auth: {
+    api_user: 'axisrooms',
+    api_key: 'admin1!'
+  }
+};
+
+var headers = {
+  apiKey: config.apiKey,
+  channelId: config.channelId
+};
+
+exports.getblogs = function(req, res) {
+
+  var params = req.headers.params ? JSON.parse(req.headers.params) : {};
+  var options = {
+    url: "http://blog.staydilly.com/wp-json/wp/v2/posts/",
+    method: 'GET'
+  };
+  request(options, function(error, response, body) {
+    if (!error && response.statusCode == 200) {
+      res.json(JSON.parse(body));
+    }
+  })
+};
+
+exports.getCatblogs = function(req, res) {
+
+  // Configure the request
+  var params = req.headers.params ? JSON.parse(req.headers.params) : {};
+  var param = {
+
+    Category: params.Category ? '&category_slug=' + params.Category : ''
+
+  };
+  var options = {
+    url: "http://axisrooms.website/staydillyblog/?json=get_category_posts" + param.Category,
+    method: 'GET'
+  };
+
+  // Start the request
+  request(options, function(error, response, body) {
+    if (!error && response.statusCode == 200) {
+      res.json(JSON.parse(body));
+    }
+  })
+};
+exports.getTagblogs = function(req, res) {
+
+  // Configure the request
+  var params = req.headers.params ? JSON.parse(req.headers.params) : {};
+  var param = {
+
+    Tag: params.Tag ? '&tag_slug=' + params.Tag : ''
+
+  };
+  var options = {
+    url: "http://axisrooms.website/staydillyblog/?json=get_tag_posts" + param.Tag,
+    method: 'GET'
+  };
+
+
+  // Start the request
+  request(options, function(error, response, body) {
+    if (!error && response.statusCode == 200) {
+      res.json(JSON.parse(body));
+    }
+  })
+};
+
+
+exports.getRecblogs = function(req, res) {
+
+  // Configure the request
+  var options = {
+    url: "http://axisrooms.website/staydillyblog/?json=get_recent_posts",
+    method: 'GET'
+  };
+
+  // Start the request
+  request(options, function(error, response, body) {
+    if (!error && response.statusCode == 200) {
+      res.json(JSON.parse(body));
+    }
+  })
+};
+exports.getblogTag = function(req, res) {
+
+  // Configure the request
+  var options = {
+    url: "http://axisrooms.website/staydillyblog/get_posts/get_tag_index/",
+    method: 'GET'
+  };
+
+  // Start the request
+  request(options, function(error, response, body) {
+    if (!error && response.statusCode == 200) {
+      res.json(JSON.parse(body));
+    }
+  })
+};
+
+exports.getblogCat = function(req, res) {
+
+  // Configure the request
+  var options = {
+    url: "http://axisrooms.website/staydillyblog/get_posts/get_category_index/",
+    method: 'GET'
+  };
+
+
+  // Start the request
+  request(options, function(error, response, body) {
+    if (!error && response.statusCode == 200) {
+      res.json(JSON.parse(body));
+    }
+  })
+};
+
+
+//single post
+exports.getSinglePost = function(req, res) {
+  var Blog = JSON.parse(req.headers.params);
+  // Configure the request
+  var options = {
+    url: "http://axisrooms.website/staydillyblog/get_posts/get_post/?slug=" + Blog.id,
+    method: 'GET'
+  };
+
+
+  // Start the request
+  request(options, function(error, response, body) {
+    if (!error && response.statusCode == 200) {
+      res.json(JSON.parse(body));
+
+    }
+  })
+};
+

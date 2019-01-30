@@ -1,0 +1,81 @@
+'use strict';
+
+/**
+ * Module dependencies
+ */
+var mongoose = require('mongoose'),
+  Schema = mongoose.Schema;
+
+
+var PromotionSchema = new Schema({
+    hotel_id: Number,
+    image: String,
+    html: String,
+    button_text: String
+});
+
+var DealSchema = new Schema({
+    deal_id: Number,
+    position: {type: Number, unique: true},
+    image: String
+}, {
+    version: false
+});
+
+var BlogSchema = new Schema({
+    blog_id: Number,
+    position: {type: Number, unique: true}
+}, {
+    version: false
+});
+
+var CollectionSchema = new Schema({
+    collection_id: Number,
+    position: {type: Number, unique: true},
+    image: String,
+    description: String
+}, {
+    version: false
+});
+
+var PromosSchema = new Schema({
+    promo_id: Number,
+    position: {type: Number, unique: true},
+    title: String,
+    url: String
+}, {
+    version: false
+});
+
+var LocationSchema = new Schema({
+    location_id: Number,
+    position: {type: Number, unique: true},
+    image: String
+}, {
+    version: false
+});
+
+var TypeSchema = new Schema({
+    type_id: Number,
+    position: {type: Number, unique: true},
+    image: String,
+    header: String,
+    description: String
+});
+
+var CitySchema = new Schema({
+    city_id: Number,
+    position: {type: Number, unique: true},
+    image: String,
+    logo: String
+});
+
+var PolicySchema = new Schema({
+    text: String
+});
+
+var HeadingSchema = new Schema({
+    title: String,
+    description: String,
+    type: String
+});

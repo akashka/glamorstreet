@@ -1,0 +1,13 @@
+(function () {
+  'use strict';
+
+  angular
+    .module('homepage.services')
+    .factory('ArticlesService', ArticlesService);
+
+  ArticlesService.$inject = ['$resource', '$log'];
+
+  function ArticlesService($resource, $log) {
+    
+  }
+}());
